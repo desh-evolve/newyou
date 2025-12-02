@@ -33,7 +33,7 @@
             <div class="card-header">
                 <h3 class="card-title">Users List</h3>
                 <div class="card-tools">
-                    <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm">
+                    <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
                         <i class="fas fa-plus"></i> Add New User
                     </a>
                 </div>
@@ -63,14 +63,14 @@
                             </td>
                             <td>{{ $user->created_at->format('Y-m-d H:i') }}</td>
                             <td>
-                                <a href="{{ route('users.show', $user->id) }}" class="btn btn-info btn-sm">
+                                <a href="{{ route('admin.users.show', $user->id) }}" class="btn btn-info btn-sm">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm">
+                                <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-warning btn-sm">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 @if($user->id !== auth()->id())
-                                <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display: inline-block;">
+                                <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="display: inline-block;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?')">

@@ -5,7 +5,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('users.index') }}">Users</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.users.index') }}">Users</a></li>
     <li class="breadcrumb-item active">Details</li>
 @endsection
 
@@ -16,7 +16,7 @@
             <div class="card-header">
                 <h3 class="card-title">User Information</h3>
                 <div class="card-tools">
-                    <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm">
+                    <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-warning btn-sm">
                         <i class="fas fa-edit"></i> Edit
                     </a>
                 </div>
@@ -75,7 +75,7 @@
         </div>
 
         <div class="card-footer">
-            <a href="{{ route('users.index') }}" class="btn btn-default">
+            <a href="{{ route('admin.users.index') }}" class="btn btn-default">
                 <i class="fas fa-arrow-left"></i> Back to List
             </a>
         </div>

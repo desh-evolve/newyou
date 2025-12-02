@@ -5,7 +5,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('roles.index') }}">Roles</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.roles.index') }}">Roles</a></li>
     <li class="breadcrumb-item active">Details</li>
 @endsection
 
@@ -16,7 +16,7 @@
             <div class="card-header">
                 <h3 class="card-title">Role Information</h3>
                 <div class="card-tools">
-                    <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-warning btn-sm">
+                    <a href="{{ route('admin.roles.edit', $role->id) }}" class="btn btn-warning btn-sm">
                         <i class="fas fa-edit"></i> Edit
                     </a>
                 </div>
@@ -70,7 +70,7 @@
                             <br>
                             <small class="text-muted">{{ $user->email }}</small>
                         </div>
-                        <a href="{{ route('users.show', $user->id) }}" class="btn btn-sm btn-info">
+                        <a href="{{ route('admin.users.show', $user->id) }}" class="btn btn-sm btn-info">
                             <i class="fas fa-eye"></i> View
                         </a>
                     </div>
@@ -81,7 +81,7 @@
         </div>
 
         <div class="card-footer">
-            <a href="{{ route('roles.index') }}" class="btn btn-default">
+            <a href="{{ route('admin.roles.index') }}" class="btn btn-default">
                 <i class="fas fa-arrow-left"></i> Back to List
             </a>
         </div>

@@ -5,7 +5,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('users.index') }}">Users</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.users.index') }}">Users</a></li>
     <li class="breadcrumb-item active">Edit</li>
 @endsection
 
@@ -16,7 +16,7 @@
             <div class="card-header">
                 <h3 class="card-title">Edit User Information</h3>
             </div>
-            <form action="{{ route('users.update', $user->id) }}" method="POST">
+            <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="card-body">
@@ -78,7 +78,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Update User
                     </button>
-                    <a href="{{ route('users.index') }}" class="btn btn-default">
+                    <a href="{{ route('admin.users.index') }}" class="btn btn-default">
                         <i class="fas fa-times"></i> Cancel
                     </a>
                 </div>

@@ -5,7 +5,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('permissions.index') }}">Permissions</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.permissions.index') }}">Permissions</a></li>
     <li class="breadcrumb-item active">Edit</li>
 @endsection
 
@@ -16,7 +16,7 @@
             <div class="card-header">
                 <h3 class="card-title">Edit Permission Information</h3>
             </div>
-            <form action="{{ route('permissions.update', $permission->id) }}" method="POST">
+            <form action="{{ route('admin.permissions.update', $permission->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="card-body">
@@ -49,7 +49,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Update Permission
                     </button>
-                    <a href="{{ route('permissions.index') }}" class="btn btn-default">
+                    <a href="{{ route('admin.permissions.index') }}" class="btn btn-default">
                         <i class="fas fa-times"></i> Cancel
                     </a>
                 </div>

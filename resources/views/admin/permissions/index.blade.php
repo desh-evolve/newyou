@@ -33,7 +33,7 @@
             <div class="card-header">
                 <h3 class="card-title">Permissions List</h3>
                 <div class="card-tools">
-                    <a href="{{ route('permissions.create') }}" class="btn btn-primary btn-sm">
+                    <a href="{{ route('admin.permissions.create') }}" class="btn btn-primary btn-sm">
                         <i class="fas fa-plus"></i> Add New Permission
                     </a>
                 </div>
@@ -61,13 +61,13 @@
                             </td>
                             <td>{{ $permission->created_at->format('Y-m-d H:i') }}</td>
                             <td>
-                                <a href="{{ route('permissions.show', $permission->id) }}" class="btn btn-info btn-sm">
+                                <a href="{{ route('admin.permissions.show', $permission->id) }}" class="btn btn-info btn-sm">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('permissions.edit', $permission->id) }}" class="btn btn-warning btn-sm">
+                                <a href="{{ route('admin.permissions.edit', $permission->id) }}" class="btn btn-warning btn-sm">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('permissions.destroy', $permission->id) }}" method="POST" style="display: inline-block;">
+                                <form action="{{ route('admin.permissions.destroy', $permission->id) }}" method="POST" style="display: inline-block;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this permission?')">

@@ -1,140 +1,96 @@
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
-    <a href="{{ url('/home') }}" class="brand-link">
-        <span class="brand-text font-weight-light">LANMIC Internal</span>
+    <a href="{{ route('admin.dashboard') }}" class="brand-link">
+        <i class="fas fa-cogs brand-image img-circle elevation-3 ml-3" style="opacity: .8; font-size: 24px; line-height: 33px;"></i>
+        <span class="brand-text font-weight-light">Admin Panel</span>
     </a>
 
     <!-- Sidebar -->
     <div class="sidebar">
-        <!-- Sidebar user panel -->
+        <!-- User Panel -->
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
-                <i class="fas fa-user-circle fa-2x text-white"></i>
+                <i class="fas fa-user-circle fa-2x text-light"></i>
             </div>
             <div class="info">
-                <a href="#" class="d-block">{{ Auth::user()->name }}</a>
+                <a href="#" class="d-block">{{ auth()->user()->name ?? 'Admin' }}</a>
             </div>
         </div>
 
         <!-- Sidebar Menu -->
         <nav class="mt-2">
-            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+                
+                <!-- Dashboard -->
                 <li class="nav-item">
-                    <a href="{{ url('/home') }}" class="nav-link {{ request()->is('home') ? 'active' : '' }}">
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>Dashboard</p>
                     </a>
                 </li>
-
-                <li class="nav-header">REQUISITIONS</li>
-
-                <li class="nav-item">
-                    <a href="{{ route('requisitions.index') }}" class="nav-link {{ request()->is('requisitions') && !request()->is('admin/requisitions*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-file-alt"></i>
-                        <p>My Requisitions</p>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('requisitions.create') }}" class="nav-link {{ request()->is('requisitions/create*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-plus-circle"></i>
-                        <p>Create Requisition</p>
-                    </a>
-                </li>
-
-                <li class="nav-header">RETURNS</li>
-
-                <li class="nav-item">
-                    <a href="{{ route('returns.index') }}" class="nav-link {{ request()->is('returns') && !request()->is('admin/requisitions*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-file-alt"></i>
-                        <p>My Returns</p>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('returns.create') }}" class="nav-link {{ request()->is('returns/create*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-plus-circle"></i>
-                        <p>Create Return</p>
-                    </a>
-                </li>
                 
-                @if(Auth::user()->hasRole('admin'))
-                <li class="nav-header">ADMINISTRATION</li>
-                
-                <li class="nav-item">
-                    <a href="{{ route('admin.requisitions.index') }}" class="nav-link {{ request()->is('admin/requisitions*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-clipboard-check"></i>
+                <!-- Blog Menu -->
+                <li class="nav-item {{ request()->routeIs('admin.blog.*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ request()->routeIs('admin.blog.*') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-blog"></i>
                         <p>
-                            Requisition Approvals
-                            @php
-                                $pendingCount = \App\Models\Requisition::pending()->count();
-                            @endphp
-                            @if($pendingCount > 0)
-                                <span class="badge badge-warning right">{{ $pendingCount }}</span>
-                            @endif
+                            Blog
+                            <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.blog.posts.index') }}" class="nav-link {{ request()->routeIs('admin.blog.posts.*') ? 'active' : '' }}">
+                                <i class="far fa-file-alt nav-icon"></i>
+                                <p>Posts</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.blog.categories.index') }}" class="nav-link {{ request()->routeIs('admin.blog.categories.*') ? 'active' : '' }}">
+                                <i class="far fa-folder nav-icon"></i>
+                                <p>Categories</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.blog.tags.index') }}" class="nav-link {{ request()->routeIs('admin.blog.tags.*') ? 'active' : '' }}">
+                                <i class="fas fa-tags nav-icon"></i>
+                                <p>Tags</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
-                
-                <li class="nav-item">
-                    <a href="{{ route('admin.returns.index') }}" class="nav-link {{ request()->is('admin/returns*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-clipboard-check"></i>
+
+                <!-- User Management -->
+                <li class="nav-item {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-users-cog"></i>
                         <p>
-                            Return Approvals
-                            @php
-                                $pendingReturns = \App\Models\ReturnModel::pending()->count();
-                            @endphp
-                            @if($pendingReturns > 0)
-                                <span class="badge badge-warning right">{{ $pendingReturns }}</span>
-                            @endif
+                            User Management
+                            <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                                <i class="fas fa-users nav-icon"></i>
+                                <p>Users</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.roles.index') }}" class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                                <i class="fas fa-user-tag nav-icon"></i>
+                                <p>Roles</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.permissions.index') }}" class="nav-link {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}">
+                                <i class="fas fa-key nav-icon"></i>
+                                <p>Permissions</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
-                <li class="nav-item">
-                    <a href="{{ route('users.index') }}" class="nav-link {{ request()->is('admin/users*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-users"></i>
-                        <p>User Management</p>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('roles.index') }}" class="nav-link {{ request()->is('admin/roles*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-user-tag"></i>
-                        <p>Role Management</p>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('permissions.index') }}" class="nav-link {{ request()->is('admin/permissions*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-lock"></i>
-                        <p>Permission Management</p>
-                    </a>
-                </li>
-
-                <li class="nav-header">ORGANIZATION</li>
-
-                <li class="nav-item">
-                    <a href="{{ route('departments.index') }}" class="nav-link {{ request()->is('admin/departments*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-building"></i>
-                        <p>Departments</p>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('sub-departments.index') }}" class="nav-link {{ request()->is('admin/sub-departments*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-sitemap"></i>
-                        <p>Sub-Departments</p>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('divisions.index') }}" class="nav-link {{ request()->is('admin/divisions*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-layer-group"></i>
-                        <p>Divisions</p>
-                    </a>
-                </li>
-                @endif
             </ul>
         </nav>
     </div>

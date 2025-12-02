@@ -5,7 +5,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('permissions.index') }}">Permissions</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.permissions.index') }}">Permissions</a></li>
     <li class="breadcrumb-item active">Create</li>
 @endsection
 
@@ -16,7 +16,7 @@
             <div class="card-header">
                 <h3 class="card-title">Permission Information</h3>
             </div>
-            <form action="{{ route('permissions.store') }}" method="POST">
+            <form action="{{ route('admin.permissions.store') }}" method="POST">
                 @csrf
                 <div class="card-body">
                     <div class="form-group">
@@ -48,7 +48,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Create Permission
                     </button>
-                    <a href="{{ route('permissions.index') }}" class="btn btn-default">
+                    <a href="{{ route('admin.permissions.index') }}" class="btn btn-default">
                         <i class="fas fa-times"></i> Cancel
                     </a>
                 </div>

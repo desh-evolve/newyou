@@ -79,7 +79,7 @@ class RolePermissionSeeder extends Seeder
         // Create admin user
         $adminUser = User::create([
             'name' => 'Admin User',
-            'email' => 'admin@lanmic.com',
+            'email' => 'admin@newyou.com',
             'password' => Hash::make('password'),
         ]);
         $adminUser->roles()->attach($admin);
@@ -87,7 +87,7 @@ class RolePermissionSeeder extends Seeder
         // Create manager user
         $managerUser = User::create([
             'name' => 'Manager User',
-            'email' => 'manager@lanmic.com',
+            'email' => 'manager@newyou.com',
             'password' => Hash::make('password'),
         ]);
         $managerUser->roles()->attach($manager);
@@ -95,7 +95,7 @@ class RolePermissionSeeder extends Seeder
         // Create regular user
         $regularUser = User::create([
             'name' => 'Regular User',
-            'email' => 'user@lanmic.com',
+            'email' => 'user@newyou.com',
             'password' => Hash::make('password'),
         ]);
         $regularUser->roles()->attach($user);
