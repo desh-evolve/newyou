@@ -10,6 +10,10 @@ use App\Http\Controllers\Admin\BlogCategoryController;
 use App\Http\Controllers\Admin\BlogTagController;
 use App\Http\Controllers\Admin\BlogPostController;
 
+use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\PackageController;
+use App\Http\Controllers\Admin\PackageServiceController;
+
 Route::get('/', function () {
     return redirect('/login');
 });
@@ -49,6 +53,34 @@ Route::middleware(['auth'])->group(function () {
             // Blog Posts
             Route::resource('posts', BlogPostController::class);
         });
+
+        // Services
+        Route::resource('services', ServiceController::class);
+        Route::post('services/{service}/toggle-status', [ServiceController::class, 'toggleStatus'])
+            ->name('services.toggle-status');
+        
+        // Packages
+        Route::resource('packages', PackageController::class);
+        Route::post('packages/{package}/toggle-status', [PackageController::class, 'toggleStatus'])
+            ->name('packages.toggle-status');
+        Route::post('packages/{package}/toggle-featured', [PackageController::class, 'toggleFeatured'])
+            ->name('packages.toggle-featured');
+        
+        // Package Services (Assignment)
+        Route::get('package-services', [PackageServiceController::class, 'index'])
+            ->name('package-services.index');
+        Route::get('package-services/assign', [PackageServiceController::class, 'assign'])
+            ->name('package-services.assign');
+        Route::post('package-services/assign', [PackageServiceController::class, 'storeAssignment'])
+            ->name('package-services.store-assignment');
+        Route::put('package-services/{packageService}', [PackageServiceController::class, 'updateSingle'])
+            ->name('package-services.update');
+        Route::delete('package-services/{packageService}', [PackageServiceController::class, 'destroy'])
+            ->name('package-services.destroy');
+        Route::post('package-services/bulk-assign', [PackageServiceController::class, 'bulkAssign'])
+            ->name('package-services.bulk-assign');
+
+
     });
     
 });
