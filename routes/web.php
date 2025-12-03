@@ -67,7 +67,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('packages.toggle-featured');
         
         // Package Services (Assignment)
-        Route::get('package-services', [PackageServiceController::class, 'index'])
+        Route::get('package-services', [PackageServiceController::class, 'assign'])
             ->name('package-services.index');
         Route::get('package-services/assign', [PackageServiceController::class, 'assign'])
             ->name('package-services.assign');

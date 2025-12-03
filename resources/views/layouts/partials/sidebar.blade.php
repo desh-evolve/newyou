@@ -86,29 +86,12 @@
                             </a>
                         </li>
 
-                         <!-- Package Services -->
-                        <li class="nav-item {{ request()->routeIs('admin.package-services.*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->routeIs('admin.package-services.*') ? 'active' : '' }}">
+                        <!-- Package Services -->
+                        <li class="nav-item">
+                            <a href="{{ route('admin.package-services.index') }}" class="nav-link {{ request()->routeIs('admin.package-services.*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-link"></i>
-                                <p>
-                                    Package Services
-                                    <i class="right fas fa-angle-left"></i>
-                                </p>
+                                <p>Package Services</p>
                             </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.package-services.index') }}" class="nav-link {{ request()->routeIs('admin.package-services.index') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>All Assignments</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.package-services.assign') }}" class="nav-link {{ request()->routeIs('admin.package-services.assign') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Assign Services</p>
-                                    </a>
-                                </li>
-                            </ul>
                         </li>
                     </ul>
                 </li>
