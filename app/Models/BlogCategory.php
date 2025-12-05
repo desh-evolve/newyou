@@ -14,12 +14,16 @@ class BlogCategory extends Model
         'description',
         'image',
         'order',
-        'is_active',
+        'status',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'status' => 'string',
         'order' => 'integer',
+        'created_by' => 'integer',
+        'updated_by' => 'integer',
     ];
 
     protected static function boot()
@@ -43,5 +47,10 @@ class BlogCategory extends Model
         return $this->hasMany(BlogPost::class)
                     ->where('status', 'published')
                     ->where('published_at', '<=', now());
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
     }
 }

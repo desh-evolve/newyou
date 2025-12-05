@@ -4,12 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Package extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'name',
@@ -22,6 +21,8 @@ class Package extends Model
         'status',
         'is_featured',
         'sort_order',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
@@ -30,6 +31,8 @@ class Package extends Model
         'validity_days' => 'integer',
         'is_featured' => 'boolean',
         'sort_order' => 'integer',
+        'created_by' => 'integer',
+        'updated_by' => 'integer',
     ];
 
     protected static function boot()
@@ -60,6 +63,14 @@ class Package extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
+    }
+
+    /**
+     * Scope a query to exclude deleted packages.
+     */
+    public function scopeNotDeleted($query)
+    {
+        return $query->where('status', '!=', 'delete');
     }
 
     public function scopeFeatured($query)

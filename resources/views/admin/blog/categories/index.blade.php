@@ -95,7 +95,7 @@
                                 </td>
                                 <td>{{ $category->order }}</td>
                                 <td>
-                                    @if($category->is_active)
+                                    @if($category->status == 'active')
                                         <span class="badge badge-success">Active</span>
                                     @else
                                         <span class="badge badge-danger">Inactive</span>

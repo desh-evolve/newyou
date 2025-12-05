@@ -15,11 +15,15 @@ class PackageService extends Model
         'quantity',
         'custom_price',
         'notes',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'custom_price' => 'decimal:2',
+        'created_by' => 'integer',
+        'updated_by' => 'integer',
     ];
 
     // Relationships
@@ -31,6 +35,12 @@ class PackageService extends Model
     public function service()
     {
         return $this->belongsTo(Service::class);
+    }
+
+    //Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
     }
 
     // Accessors

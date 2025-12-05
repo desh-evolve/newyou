@@ -11,6 +11,9 @@ class BlogTag extends Model
     protected $fillable = [
         'name',
         'slug',
+        'status',
+        'created_by',
+        'updated_by',
     ];
 
     protected static function boot()
@@ -27,5 +30,10 @@ class BlogTag extends Model
     public function posts(): BelongsToMany
     {
         return $this->belongsToMany(BlogPost::class, 'blog_post_tag');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
     }
 }

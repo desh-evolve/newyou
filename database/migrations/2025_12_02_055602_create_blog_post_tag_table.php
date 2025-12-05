@@ -12,7 +12,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('blog_post_id')->constrained()->cascadeOnDelete();
             $table->foreignId('blog_tag_id')->constrained()->cascadeOnDelete();
-            $table->timestamps();
+
+            $table->enum('status', ['active', 'delete'])->default('active');
+            $table->timestamp('created_at')->useCurrent();
+            $table->integer('created_by')->default(0)->nullable();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
+            $table->integer('updated_by')->default(0)->nullable();
             
             $table->unique(['blog_post_id', 'blog_tag_id']);
         });

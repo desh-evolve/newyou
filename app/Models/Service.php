@@ -4,12 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Service extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'name',
@@ -21,12 +20,16 @@ class Service extends Model
         'image',
         'status',
         'sort_order',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'duration' => 'integer',
         'sort_order' => 'integer',
+        'created_by' => 'integer',
+        'updated_by' => 'integer',
     ];
 
     protected static function boot()
@@ -63,6 +66,11 @@ class Service extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
+    }
+
+    public function scopeNotDeleted($query)
+    {
+        return $query->where('status', '!=', 'delete');
     }
 
     public function scopeOrdered($query)

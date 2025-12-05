@@ -15,8 +15,12 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('image')->nullable();
             $table->integer('order')->default(0);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
+            
+            $table->enum('status', ['active', 'delete'])->default('active');
+            $table->timestamp('created_at')->useCurrent();
+            $table->integer('created_by')->default(0)->nullable();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
+            $table->integer('updated_by')->default(0)->nullable();
         });
     }
 

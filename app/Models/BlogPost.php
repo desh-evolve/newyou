@@ -25,6 +25,8 @@ class BlogPost extends Model
         'is_featured',
         'allow_comments',
         'views',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
@@ -32,6 +34,8 @@ class BlogPost extends Model
         'is_featured' => 'boolean',
         'allow_comments' => 'boolean',
         'views' => 'integer',
+        'created_by' => 'integer',
+        'updated_by' => 'integer',
     ];
 
     protected static function boot()
@@ -72,6 +76,16 @@ class BlogPost extends Model
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeNotDeleted($query)
+    {
+        return $query->where('status', '!=', 'delete');
     }
 
     public function getReadingTimeAttribute(): int

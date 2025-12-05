@@ -82,8 +82,8 @@
 
                         <div class="form-group">
                             <div class="custom-control custom-switch">
-                                <input type="checkbox" name="is_active" id="is_active" class="custom-control-input" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="is_active">Active</label>
+                                <input type="checkbox" name="status" id="status" class="custom-control-input" value="1" {{ old('status', 'active') ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="status">Active</label>
                             </div>
                         </div>
                     </div>

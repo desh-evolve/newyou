@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->string('description')->nullable();
             
-            $table->string('status')->default('active')->nullable();
+            $table->enum('status', ['active', 'delete'])->default('active');
             $table->timestamp('created_at')->useCurrent();
             $table->integer('created_by')->default(0)->nullable();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->string('description')->nullable();
             
-            $table->string('status')->default('active')->nullable();
+            $table->enum('status', ['active', 'delete'])->default('active');
             $table->timestamp('created_at')->useCurrent();
             $table->integer('created_by')->default(0)->nullable();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
@@ -40,7 +40,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('role_id')->constrained()->onDelete('cascade');
             
-            $table->string('status')->default('active')->nullable();
+            $table->enum('status', ['active', 'delete'])->default('active');
             $table->timestamp('created_at')->useCurrent();
             $table->integer('created_by')->default(0)->nullable();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
@@ -53,7 +53,7 @@ return new class extends Migration
             $table->foreignId('role_id')->constrained()->onDelete('cascade');
             $table->foreignId('permission_id')->constrained()->onDelete('cascade');
             
-            $table->string('status')->default('active')->nullable();
+            $table->enum('status', ['active', 'delete'])->default('active');
             $table->timestamp('created_at')->useCurrent();
             $table->integer('created_by')->default(0)->nullable();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();

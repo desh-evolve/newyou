@@ -17,10 +17,13 @@ return new class extends Migration
             $table->integer('duration')->nullable()->comment('Duration in minutes');
             $table->string('icon')->nullable();
             $table->string('image')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->integer('sort_order')->default(0);
-            $table->timestamps();
-            $table->softDeletes();
+            
+            $table->enum('status', ['active', 'inactive', 'delete'])->default('active');
+            $table->timestamp('created_at')->useCurrent();
+            $table->integer('created_by')->default(0)->nullable();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
+            $table->integer('updated_by')->default(0)->nullable();
         });
     }
 

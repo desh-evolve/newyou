@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('featured_image')->nullable();
             $table->foreignId('blog_category_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->enum('status', ['draft', 'published', 'scheduled'])->default('draft');
             $table->timestamp('published_at')->nullable();
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
@@ -25,7 +24,12 @@ return new class extends Migration
             $table->boolean('is_featured')->default(false);
             $table->boolean('allow_comments')->default(true);
             $table->unsignedBigInteger('views')->default(0);
-            $table->timestamps();
+            
+            $table->enum('status', ['draft', 'published', 'scheduled', 'delete'])->default('draft');
+            $table->timestamp('created_at')->useCurrent();
+            $table->integer('created_by')->default(0)->nullable();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
+            $table->integer('updated_by')->default(0)->nullable();
             
             $table->index(['status', 'published_at']);
             $table->index('is_featured');
