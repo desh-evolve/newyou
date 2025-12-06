@@ -258,6 +258,16 @@
                     </a>
                 </li>
 
+                <!-- Testimonials -->
+                <li class="nav-item">
+                    <a href="{{ route('admin.testimonials.index') }}" class="nav-link {{ request()->routeIs('admin.testimonials.*') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-star"></i>
+                        <p>
+                            Testimonials
+                        </p>
+                    </a>
+                </li>
+
             </ul>
         </nav>
     </div>

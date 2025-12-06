@@ -382,4 +382,55 @@ class AppointmentController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    public function today(Request $request)
+    {
+        $query = Appointment::with(['client.user', 'coach', 'package', 'service'])
+            ->notDeleted()
+            ->today()
+            ->orderBy('start_time');
+
+        // Filter by coach
+        if ($request->filled('coach_id')) {
+            $query->forCoach($request->coach_id);
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->byStatus($request->status);
+        }
+
+        $appointments = $query->get();
+
+        // Get coaches for filter dropdown
+        $coaches = User::whereHas('roles', function($query) {
+                $query->where('name', 'coach');
+            })
+            ->where('status', 'active')
+            ->get();
+
+        // Today's statistics
+        $stats = [
+            'total' => $appointments->count(),
+            'pending' => $appointments->where('appointment_status', 'pending')->count(),
+            'confirmed' => $appointments->where('appointment_status', 'confirmed')->count(),
+            'in_progress' => $appointments->where('appointment_status', 'in_progress')->count(),
+            'completed' => $appointments->where('appointment_status', 'completed')->count(),
+            'cancelled' => $appointments->where('appointment_status', 'cancelled')->count(),
+            'no_show' => $appointments->where('appointment_status', 'no_show')->count(),
+            'total_revenue' => $appointments->where('payment_status', 'paid')->sum('final_amount'),
+        ];
+
+        // Group appointments by hour for timeline view
+        $groupedAppointments = $appointments->groupBy(function ($appointment) {
+            return \Carbon\Carbon::parse($appointment->start_time)->format('H:00');
+        });
+
+        return view('admin.appointments.today', compact(
+            'appointments',
+            'coaches',
+            'stats',
+            'groupedAppointments'
+        ));
+    }
 }

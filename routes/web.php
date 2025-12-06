@@ -14,6 +14,10 @@ use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\PackageServiceController;
 
+use App\Http\Controllers\Admin\TestimonialController as AdminTestimonialController;
+use App\Http\Controllers\Client\TestimonialController as ClientTestimonialController;
+
+
 Route::get('/', function () {
     return redirect('/login');
 });
@@ -89,6 +93,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', [App\Http\Controllers\Admin\AppointmentController::class, 'store'])->name('store');
             Route::get('/export', [App\Http\Controllers\Admin\AppointmentController::class, 'export'])->name('export');
             Route::get('/available-slots', [App\Http\Controllers\Admin\AppointmentController::class, 'getAvailableSlots'])->name('available-slots');
+            Route::get('/today', [\App\Http\Controllers\Admin\AppointmentController::class, 'today'])->name('today');
             Route::get('/{appointment}', [App\Http\Controllers\Admin\AppointmentController::class, 'show'])->name('show');
             Route::get('/{appointment}/edit', [App\Http\Controllers\Admin\AppointmentController::class, 'edit'])->name('edit');
             Route::put('/{appointment}', [App\Http\Controllers\Admin\AppointmentController::class, 'update'])->name('update');
@@ -98,9 +103,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{appointment}/complete', [App\Http\Controllers\Admin\AppointmentController::class, 'complete'])->name('complete');
             Route::post('/{appointment}/start', [App\Http\Controllers\Admin\AppointmentController::class, 'start'])->name('start');
             Route::post('/{appointment}/no-show', [App\Http\Controllers\Admin\AppointmentController::class, 'noShow'])->name('no-show');
-            
-            Route::get('/today', [App\Http\Controllers\Admin\AppointmentController::class, 'today'])->name('today');
-
+       
             // Notes
             Route::get('/{appointment}/notes', [App\Http\Controllers\Admin\AppointmentNoteController::class, 'index'])->name('notes.index');
             Route::post('/{appointment}/notes', [App\Http\Controllers\Admin\AppointmentNoteController::class, 'store'])->name('notes.store');
@@ -158,6 +161,14 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{notification}', [App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('destroy');
         });
 
+        // Admin routes (requires admin middleware)
+        Route::resource('testimonials', AdminTestimonialController::class);
+        Route::post('testimonials/{testimonial}/approve', [AdminTestimonialController::class, 'approve'])->name('testimonials.approve');
+        Route::post('testimonials/{testimonial}/reject', [AdminTestimonialController::class, 'reject'])->name('testimonials.reject');
+        Route::post('testimonials/{testimonial}/toggle-visibility', [AdminTestimonialController::class, 'toggleVisibility'])->name('testimonials.toggle-visibility');
+        Route::post('testimonials/update-order', [AdminTestimonialController::class, 'updateOrder'])->name('testimonials.update-order');
+        
+
     });
 
     // Client Routes
@@ -191,6 +202,11 @@ Route::middleware(['auth'])->group(function () {
         // Profile
         Route::get('/profile', [App\Http\Controllers\Client\ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [App\Http\Controllers\Client\ProfileController::class, 'update'])->name('profile.update');
+    
+        // Client routes (requires client role)
+        Route::resource('testimonials', ClientTestimonialController::class)->except(['show']);
+    
     });
     
 });
+
