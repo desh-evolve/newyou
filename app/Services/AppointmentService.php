@@ -9,7 +9,7 @@ use App\Models\Client;
 use App\Models\AppointmentNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Exception;
 
@@ -70,10 +70,207 @@ class AppointmentService
             $timeSlot->lock($client->user_id);
 
             // Send notifications
-            $this->notificationService->sendAppointmentCreatedNotifications($appointment);
+            Log::info('Creating notifications for appointment: ' . $appointment->id);
+            $this->createAppointmentNotifications($appointment, 'created');
 
             return $appointment;
         });
+    }
+
+    /**
+     * Confirm an appointment
+     */
+    public function confirmAppointment(Appointment $appointment)
+    {
+        return DB::transaction(function () use ($appointment) {
+            $appointment->confirm();
+            
+            // Book the time slot
+            if ($appointment->timeSlot) {
+                $appointment->timeSlot->book();
+            }
+            
+            // Send notification
+            Log::info('Creating confirm notification for appointment: ' . $appointment->id);
+            $this->createAppointmentNotifications($appointment, 'confirmed');
+            
+            return $appointment;
+        });
+    }
+
+    /**
+     * Cancel an appointment (admin only)
+     */
+    public function cancelAppointment(Appointment $appointment, $reason = null)
+    {
+        return DB::transaction(function () use ($appointment, $reason) {
+            $appointment->cancel($reason);
+            
+            // Send notification
+            Log::info('Creating cancel notification for appointment: ' . $appointment->id);
+            $this->createAppointmentNotifications($appointment, 'cancelled');
+            
+            // Process refund if paid
+            if ($appointment->payment_status === 'paid' && $appointment->stripe_payment_intent_id) {
+                try {
+                    $this->stripeService->refundPayment($appointment);
+                } catch (Exception $e) {
+                    Log::error('Refund failed: ' . $e->getMessage());
+                }
+            }
+            
+            return $appointment;
+        });
+    }
+
+    /**
+     * Complete an appointment
+     */
+    public function completeAppointment(Appointment $appointment)
+    {
+        return DB::transaction(function () use ($appointment) {
+            $appointment->complete();
+            
+            // Send notification
+            Log::info('Creating complete notification for appointment: ' . $appointment->id);
+            $this->createAppointmentNotifications($appointment, 'completed');
+            
+            return $appointment;
+        });
+    }
+
+    /**
+     * Create notifications for appointment events
+     */
+    protected function createAppointmentNotifications(Appointment $appointment, string $type)
+    {
+        try {
+            // Reload appointment with relationships
+            $appointment->load(['client.user', 'coach']);
+            
+            $clientUserId = $appointment->client->user_id ?? null;
+            $coachId = $appointment->coach_id;
+            
+            Log::info("Creating notification - Type: {$type}, Client User ID: {$clientUserId}, Coach ID: {$coachId}");
+            
+            switch ($type) {
+                case 'created':
+                    // Notify client
+                    if ($clientUserId) {
+                        AppointmentNotification::create([
+                            'user_id' => $clientUserId,
+                            'appointment_id' => $appointment->id,
+                            'title' => 'Appointment Booked',
+                            'message' => "Your appointment has been booked for {$appointment->formatted_date} at {$appointment->formatted_time}.",
+                            'type' => 'appointment_created',
+                            'channel' => 'database',
+                            'is_read' => false,
+                        ]);
+                        Log::info("Created notification for client: {$clientUserId}");
+                    }
+                    
+                    // Notify coach
+                    if ($coachId) {
+                        AppointmentNotification::create([
+                            'user_id' => $coachId,
+                            'appointment_id' => $appointment->id,
+                            'title' => 'New Appointment',
+                            'message' => "New appointment with {$appointment->client->full_name} on {$appointment->formatted_date} at {$appointment->formatted_time}.",
+                            'type' => 'appointment_created',
+                            'channel' => 'database',
+                            'is_read' => false,
+                        ]);
+                        Log::info("Created notification for coach: {$coachId}");
+                    }
+                    
+                    // Notify admin (current user if different)
+                    $adminId = Auth::id();
+                    if ($adminId && $adminId != $clientUserId && $adminId != $coachId) {
+                        AppointmentNotification::create([
+                            'user_id' => $adminId,
+                            'appointment_id' => $appointment->id,
+                            'title' => 'Appointment Created',
+                            'message' => "Appointment {$appointment->appointment_number} has been created.",
+                            'type' => 'appointment_created',
+                            'channel' => 'database',
+                            'is_read' => false,
+                        ]);
+                        Log::info("Created notification for admin: {$adminId}");
+                    }
+                    break;
+                    
+                case 'confirmed':
+                    if ($clientUserId) {
+                        AppointmentNotification::create([
+                            'user_id' => $clientUserId,
+                            'appointment_id' => $appointment->id,
+                            'title' => 'Appointment Confirmed',
+                            'message' => "Your appointment on {$appointment->formatted_date} at {$appointment->formatted_time} has been confirmed.",
+                            'type' => 'appointment_confirmed',
+                            'channel' => 'database',
+                            'is_read' => false,
+                        ]);
+                    }
+                    
+                    if ($coachId) {
+                        AppointmentNotification::create([
+                            'user_id' => $coachId,
+                            'appointment_id' => $appointment->id,
+                            'title' => 'Appointment Confirmed',
+                            'message' => "Appointment with {$appointment->client->full_name} on {$appointment->formatted_date} has been confirmed.",
+                            'type' => 'appointment_confirmed',
+                            'channel' => 'database',
+                            'is_read' => false,
+                        ]);
+                    }
+                    break;
+                    
+                case 'cancelled':
+                    if ($clientUserId) {
+                        AppointmentNotification::create([
+                            'user_id' => $clientUserId,
+                            'appointment_id' => $appointment->id,
+                            'title' => 'Appointment Cancelled',
+                            'message' => "Your appointment on {$appointment->formatted_date} has been cancelled. Reason: {$appointment->cancellation_reason}",
+                            'type' => 'appointment_cancelled',
+                            'channel' => 'database',
+                            'is_read' => false,
+                        ]);
+                    }
+                    
+                    if ($coachId) {
+                        AppointmentNotification::create([
+                            'user_id' => $coachId,
+                            'appointment_id' => $appointment->id,
+                            'title' => 'Appointment Cancelled',
+                            'message' => "Appointment with {$appointment->client->full_name} on {$appointment->formatted_date} has been cancelled.",
+                            'type' => 'appointment_cancelled',
+                            'channel' => 'database',
+                            'is_read' => false,
+                        ]);
+                    }
+                    break;
+                    
+                case 'completed':
+                    if ($clientUserId) {
+                        AppointmentNotification::create([
+                            'user_id' => $clientUserId,
+                            'appointment_id' => $appointment->id,
+                            'title' => 'Session Completed',
+                            'message' => "Your session on {$appointment->formatted_date} has been completed. Thank you!",
+                            'type' => 'appointment_completed',
+                            'channel' => 'database',
+                            'is_read' => false,
+                        ]);
+                    }
+                    break;
+            }
+            
+        } catch (Exception $e) {
+            Log::error('Failed to create notification: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
+            // Don't throw - let the main operation continue
+        }
     }
 
     /**
@@ -86,6 +283,7 @@ class AppointmentService
         if (!$client) {
             $client = Client::create(array_merge([
                 'user_id' => $userId,
+                'status' => 'active',
             ], $clientData));
         } elseif (!empty($clientData)) {
             $client->update($clientData);
@@ -123,86 +321,6 @@ class AppointmentService
     }
 
     /**
-     * Confirm an appointment
-     */
-    public function confirmAppointment(Appointment $appointment)
-    {
-        return DB::transaction(function () use ($appointment) {
-            $appointment->confirm();
-            
-            // Book the time slot
-            $appointment->timeSlot->book();
-            
-            // Send notification
-            $this->notificationService->sendAppointmentConfirmedNotification($appointment);
-            
-            return $appointment;
-        });
-    }
-
-    /**
-     * Cancel an appointment (admin only)
-     */
-    public function cancelAppointment(Appointment $appointment, $reason = null)
-    {
-        return DB::transaction(function () use ($appointment, $reason) {
-            $appointment->cancel($reason);
-            
-            // Send notification
-            $this->notificationService->sendAppointmentCancelledNotification($appointment);
-            
-            // Process refund if paid
-            if ($appointment->payment_status === 'paid') {
-                $this->stripeService->refundPayment($appointment);
-            }
-            
-            return $appointment;
-        });
-    }
-
-    /**
-     * Complete an appointment
-     */
-    public function completeAppointment(Appointment $appointment)
-    {
-        return DB::transaction(function () use ($appointment) {
-            $appointment->complete();
-            
-            // Send notification
-            $this->notificationService->sendAppointmentCompletedNotification($appointment);
-            
-            return $appointment;
-        });
-    }
-
-    /**
-     * Process payment for appointment
-     */
-    public function processPayment(Appointment $appointment, $paymentMethodId)
-    {
-        return DB::transaction(function () use ($appointment, $paymentMethodId) {
-            $result = $this->stripeService->processPayment($appointment, $paymentMethodId);
-            
-            if ($result['success']) {
-                $appointment->markPaid($result['payment_intent_id'], $result['charge_id'] ?? null);
-                
-                // Auto-confirm after payment
-                $this->confirmAppointment($appointment);
-                
-                // Send payment notification
-                $this->notificationService->sendPaymentReceivedNotification($appointment);
-            } else {
-                $appointment->payment_status = 'failed';
-                $appointment->save();
-                
-                $this->notificationService->sendPaymentFailedNotification($appointment);
-            }
-            
-            return $result;
-        });
-    }
-
-    /**
      * Get appointments for calendar view
      */
     public function getAppointmentsForCalendar($startDate, $endDate, $coachId = null, $clientId = null)
@@ -222,7 +340,7 @@ class AppointmentService
         return $query->get()->map(function ($appointment) {
             return [
                 'id' => $appointment->id,
-                'title' => $appointment->client->full_name,
+                'title' => $appointment->client->full_name ?? 'Unknown',
                 'start' => $appointment->appointment_date->format('Y-m-d') . 'T' . $appointment->start_time,
                 'end' => $appointment->appointment_date->format('Y-m-d') . 'T' . $appointment->end_time,
                 'color' => $this->getStatusColor($appointment->appointment_status),
@@ -231,8 +349,8 @@ class AppointmentService
                     'status' => $appointment->appointment_status,
                     'payment_status' => $appointment->payment_status,
                     'type' => $appointment->appointment_type,
-                    'coach_name' => $appointment->coach->name,
-                    'client_name' => $appointment->client->full_name,
+                    'coach_name' => $appointment->coach->name ?? 'Unknown',
+                    'client_name' => $appointment->client->full_name ?? 'Unknown',
                     'package' => $appointment->package->name ?? null,
                     'service' => $appointment->service->name ?? null,
                 ],
@@ -246,13 +364,13 @@ class AppointmentService
     protected function getStatusColor($status)
     {
         $colors = [
-            'pending' => '#ffc107',      // Yellow
-            'confirmed' => '#17a2b8',    // Cyan
-            'in_progress' => '#007bff',  // Blue
-            'completed' => '#28a745',    // Green
-            'cancelled' => '#dc3545',    // Red
-            'no_show' => '#6c757d',      // Gray
-            'rescheduled' => '#343a40',  // Dark
+            'pending' => '#ffc107',
+            'confirmed' => '#17a2b8',
+            'in_progress' => '#007bff',
+            'completed' => '#28a745',
+            'cancelled' => '#dc3545',
+            'no_show' => '#6c757d',
+            'rescheduled' => '#343a40',
         ];
 
         return $colors[$status] ?? '#6c757d';
@@ -282,17 +400,66 @@ class AppointmentService
     }
 
     /**
-     * Clear sidebar cache for a user
+     * Process payment for appointment
      */
-    function clearSidebarCache($userId = null): void
+    public function processPayment(Appointment $appointment, $paymentMethodId)
     {
-        $userId = $userId ?? auth()->id();
-        if ($userId) {
-            Cache::forget("sidebar_counts_{$userId}");
-        }
+        return DB::transaction(function () use ($appointment, $paymentMethodId) {
+            $result = $this->stripeService->processPayment($appointment, $paymentMethodId);
+            
+            if ($result['success']) {
+                $appointment->markPaid($result['payment_intent_id'], $result['charge_id'] ?? null);
+                
+                // Auto-confirm after payment
+                $this->confirmAppointment($appointment);
+                
+                // Create payment notification
+                $this->createPaymentNotification($appointment, true);
+            } else {
+                $appointment->payment_status = 'failed';
+                $appointment->save();
+                
+                $this->createPaymentNotification($appointment, false);
+            }
+            
+            return $result;
+        });
     }
 
-    // Call this after creating/updating/deleting appointments
-    // Example in AppointmentService after createAppointment():
-    //clearSidebarCache();
+    /**
+     * Create payment notification
+     */
+    protected function createPaymentNotification(Appointment $appointment, bool $success)
+    {
+        try {
+            $appointment->load(['client.user']);
+            $clientUserId = $appointment->client->user_id ?? null;
+            
+            if ($clientUserId) {
+                if ($success) {
+                    AppointmentNotification::create([
+                        'user_id' => $clientUserId,
+                        'appointment_id' => $appointment->id,
+                        'title' => 'Payment Received',
+                        'message' => "Payment of \${$appointment->final_amount} received for your appointment on {$appointment->formatted_date}.",
+                        'type' => 'payment_received',
+                        'channel' => 'database',
+                        'is_read' => false,
+                    ]);
+                } else {
+                    AppointmentNotification::create([
+                        'user_id' => $clientUserId,
+                        'appointment_id' => $appointment->id,
+                        'title' => 'Payment Failed',
+                        'message' => "Payment for your appointment on {$appointment->formatted_date} failed. Please try again.",
+                        'type' => 'payment_failed',
+                        'channel' => 'database',
+                        'is_read' => false,
+                    ]);
+                }
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to create payment notification: ' . $e->getMessage());
+        }
+    }
 }

@@ -24,7 +24,9 @@ class AppointmentNotification extends Model
         'metadata',
         'status',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
@@ -36,6 +38,12 @@ class AppointmentNotification extends Model
         'updated_at' => 'datetime',
     ];
 
+    protected $attributes = [
+        'status' => 'active',
+        'channel' => 'database',
+        'is_read' => false,
+    ];
+
     protected static function boot()
     {
         parent::boot();
@@ -43,10 +51,17 @@ class AppointmentNotification extends Model
         static::creating(function ($model) {
             $model->created_by = Auth::id() ?? 0;
             $model->updated_by = Auth::id() ?? 0;
+            $model->created_at = now();
+            $model->updated_at = now();
+            
+            if (!isset($model->status)) {
+                $model->status = 'active';
+            }
         });
 
         static::updating(function ($model) {
             $model->updated_by = Auth::id() ?? 0;
+            $model->updated_at = now();
         });
     }
 
@@ -117,7 +132,7 @@ class AppointmentNotification extends Model
 
     public function getTimeAgoAttribute()
     {
-        return $this->created_at->diffForHumans();
+        return $this->created_at ? $this->created_at->diffForHumans() : 'Unknown';
     }
 
     // Methods
@@ -155,6 +170,7 @@ class AppointmentNotification extends Model
             'type' => $type,
             'channel' => 'database',
             'metadata' => $metadata,
+            'status' => 'active',
         ]);
     }
 

@@ -28,10 +28,12 @@ class NotificationController extends Controller
             ->notDeleted()
             ->orderByDesc('created_at');
 
+        // Filter by type
         if ($request->filled('type')) {
             $query->byType($request->type);
         }
 
+        // Filter by read status
         if ($request->filled('read')) {
             if ($request->read === 'unread') {
                 $query->unread();
@@ -51,17 +53,37 @@ class NotificationController extends Controller
      */
     public function dropdown()
     {
+        $userId = Auth::id();
+        
+        \Log::info("Loading notifications for user: {$userId}");
+        
         $notifications = AppointmentNotification::with(['appointment'])
-            ->forUser(Auth::id())
-            ->notDeleted()
+            ->where('user_id', $userId)
+            ->where('status', '!=', 'delete')
             ->orderByDesc('created_at')
             ->take(10)
             ->get();
-
-        $unreadCount = $this->notificationService->getUnreadCount(Auth::id());
+        
+        \Log::info("Found notifications: " . $notifications->count());
+        
+        $unreadCount = AppointmentNotification::where('user_id', $userId)
+            ->where('status', '!=', 'delete')
+            ->where('is_read', false)
+            ->count();
 
         return response()->json([
-            'notifications' => $notifications,
+            'notifications' => $notifications->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'title' => $notification->title,
+                    'message' => \Str::limit($notification->message, 50),
+                    'type' => $notification->type,
+                    'type_icon' => $notification->type_icon,
+                    'is_read' => $notification->is_read,
+                    'time_ago' => $notification->time_ago,
+                    'appointment_id' => $notification->appointment_id,
+                ];
+            }),
             'unread_count' => $unreadCount,
         ]);
     }
@@ -71,6 +93,11 @@ class NotificationController extends Controller
      */
     public function markAsRead(AppointmentNotification $notification)
     {
+        // Check ownership
+        if ($notification->user_id !== Auth::id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
         $notification->markAsRead();
 
         return response()->json([
@@ -97,6 +124,11 @@ class NotificationController extends Controller
      */
     public function destroy(AppointmentNotification $notification)
     {
+        // Check ownership
+        if ($notification->user_id !== Auth::id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
         $notification->softDelete();
 
         return response()->json([
