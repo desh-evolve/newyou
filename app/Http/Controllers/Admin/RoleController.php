@@ -64,7 +64,7 @@ class RoleController extends Controller
             $role->permissions()->attach($request->permissions);
         }
 
-        return redirect()->route('roles.index')
+        return redirect()->route('admin.roles.index')
             ->with('success', 'Role created successfully.');
     }
 
@@ -112,7 +112,7 @@ class RoleController extends Controller
 
         $role->permissions()->sync($request->permissions ?? []);
 
-        return redirect()->route('roles.index')
+        return redirect()->route('admin.roles.index')
             ->with('success', 'Role updated successfully.');
     }
 
@@ -122,14 +122,14 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         if ($role->users()->count() > 0) {
-            return redirect()->route('roles.index')
+            return redirect()->route('admin.roles.index')
                 ->with('error', 'Cannot delete role that has users assigned to it.');
         }
 
         $role->permissions()->detach();
         $role->delete();
 
-        return redirect()->route('roles.index')
+        return redirect()->route('admin.roles.index')
             ->with('success', 'Role deleted successfully.');
     }
 }
